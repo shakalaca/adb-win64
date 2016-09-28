@@ -10,7 +10,13 @@ CXX=$(CC)
 LOCAL_PATH:= $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 adb_version := $(shell git -C $(LOCAL_PATH) rev-parse --short=12 HEAD 2>/dev/null)-android
 
-SRCS+= /home/vagrant/adb-x64/openssl-1.0.2j/ms/applink.c
+VPATH+= ../../../../
+SRCS+= AdbWinUsb.c
+SRCS+= usb_none.c
+
+SRCS+= ../../../../openssl-1.0.2j/ms/applink.c
+
+#SRCS+= usb_windows.c
 SRCS+= adb.c
 #SRCS+= fdevent.c
 SRCS+= adb_client.c
@@ -23,7 +29,6 @@ SRCS+= sockets.c
 SRCS+= transport.c
 SRCS+= transport_local.c
 SRCS+= transport_usb.c
-SRCS+= usb_windows.c
 # SRCS+= usb_vendors.c
 SRCS+= sysdeps_win32.c
 SRCS+= adb_utils.c
@@ -87,9 +92,6 @@ SRCS+= inftrees.c
 SRCS+= trees.c
 SRCS+= uncompr.c
 SRCS+= zutil.c
-
-VPATH+= ../../../../
-SRCS+= AdbWinUsb.c
 
 CPPFLAGS+= -D_mkdir=mkdir
 CPPFLAGS+= -DADB_HOST=1
