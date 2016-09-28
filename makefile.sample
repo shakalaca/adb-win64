@@ -17,7 +17,7 @@ SRCS+= adb_client.c
 SRCS+= commandline.c
 SRCS+= console.c
 SRCS+= file_sync_client.c
-SRCS+= get_my_path_windows.c
+# SRCS+= get_my_path_windows.c
 SRCS+= services.c
 SRCS+= sockets.c
 SRCS+= transport.c
@@ -32,17 +32,33 @@ SRCS+= adb_auth.c
 # SRCS+= adb_auth_client.c
 SRCS+= adb_auth_host.c
 SRCS+= adb_listeners.c
-SRCS+= adb_main.c
+# SRCS+= adb_main.c
+SRCS+= shell_service_protocol.c
+SRCS+= client/main.c
+SRCS+= line_printer.c
+SRCS+= fdevent.c
+SRCS+= adb_trace.c
+SRCS+= diagnose_usb.c
+SRCS+= logger_name.c
 
 VPATH+= ../base
 SRCS+= file.c
 SRCS+= stringprintf.c
 SRCS+= strings.c
+SRCS+= logging.c
+SRCS+= utf8.c
+SRCS+= errors_windows.c
+SRCS+= parsenetaddress.c
 
 VPATH+= ../liblog
-SRCS+= logd_write.c
+# SRCS+= logd_write.c
 SRCS+= fake_log_device.c
- 
+#SRCS+= log_event_write.c
+SRCS+= logger_write.c
+SRCS+= config_write.c
+SRCS+= logger_lock.c
+SRCS+= fake_writer.c
+
 #VPATH+= ../libcutils
 #SRCS+= list.c
 #SRCS+= socket_inaddr_any_server.c
@@ -107,6 +123,7 @@ CPPFLAGS+= -D__END_DECLS=/**/
 CFLAGS+= -O2 -g -Wall -Wno-unused-parameter
 
 LDFLAGS+= -L../../../../openssl-1.0.2j -static-libstdc++ -static-libgcc
+LDFLAGS+= -municode
 LIBS= -lcrypto -lpthread -lws2_32 -lgdi32
 LIBS+= -static -lstdc++
 #LIBS+= -lrt 

@@ -9,7 +9,7 @@ tar -xvzf openssl-1.0.2j.tar.gz
 # -------------------------
 
 # Branch to checkout from Android source code repo
-branch=android-6.0.0_r7
+branch=android-7.0.0_r5
 
 # DOWNLOAD necessary files
 # -------------------------
