@@ -7,6 +7,8 @@ CC= $(TOOLCHAIN)gcc
 LD= $(TOOLCHAIN)gcc
 CXX=$(CC)
 
+LOCAL_PATH:= $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+adb_version := $(shell git -C $(LOCAL_PATH) rev-parse --short=12 HEAD 2>/dev/null)-android
 
 SRCS+= /home/vagrant/adb-x64/openssl-1.0.2j/ms/applink.c
 SRCS+= adb.c
@@ -22,9 +24,24 @@ SRCS+= transport.c
 SRCS+= transport_local.c
 SRCS+= transport_usb.c
 SRCS+= usb_windows.c
-SRCS+= usb_vendors.c
-SRCS+= adb_auth_host.c
+# SRCS+= usb_vendors.c
 SRCS+= sysdeps_win32.c
+SRCS+= adb_utils.c
+SRCS+= adb_io.c
+SRCS+= adb_auth.c
+# SRCS+= adb_auth_client.c
+SRCS+= adb_auth_host.c
+SRCS+= adb_listeners.c
+SRCS+= adb_main.c
+
+VPATH+= ../base
+SRCS+= file.c
+SRCS+= stringprintf.c
+SRCS+= strings.c
+
+VPATH+= ../liblog
+SRCS+= logd_write.c
+SRCS+= fake_log_device.c
  
 #VPATH+= ../libcutils
 #SRCS+= list.c
@@ -36,9 +53,11 @@ SRCS+= sysdeps_win32.c
 #SRCS+= socket_network_client.c
 #SRCS+= load_file.c
  
-VPATH+= ../libzipfile
-SRCS+= centraldir.c
-SRCS+= zipfile.c
+VPATH+= ../libutils
+SRCS+= FileMap.c
+
+VPATH+= ../libziparchive
+SRCS+= zip_archive.c
  
 VPATH+= ../../../external/zlib/src
 SRCS+= adler32.c
@@ -75,16 +94,21 @@ CPPFLAGS+= -DHAVE_OFF64_T
 CPPFLAGS+= -DADB_REVISION='"$(adb_version)"'
 CPPFLAGS+= -DZLIB_CONST
 CPPFLAGS+= -DADBWIN_EXPORTS
+CPPFLAGS+= -DFAKE_LOG_DEVICE=1
+CPPFLAGS+= -DADB_REVISION='"$(adb_version)"'
 CPPFLAGS+= -I.
 CPPFLAGS+= -I../include
 CPPFLAGS+= -I../../../external/zlib
 CPPFLAGS+= -I../../../../openssl-1.0.2j/include
 CPPFLAGS+= -I../base/include 
 CPPFLAGS+= -I../../../platform/development/host/windows/usb/api/
+CPPFLAGS+= -D__BEGIN_DECLS=/**/
+CPPFLAGS+= -D__END_DECLS=/**/
 CFLAGS+= -O2 -g -Wall -Wno-unused-parameter
 
-LDFLAGS+= -L../../../../openssl-1.0.2j
-LIBS= -lcrypto -lpthread -lws2_32
+LDFLAGS+= -L../../../../openssl-1.0.2j -static-libstdc++ -static-libgcc
+LIBS= -lcrypto -lpthread -lws2_32 -lgdi32
+LIBS+= -static -lstdc++
 #LIBS+= -lrt 
  
 OBJS= $(SRCS:.c=.o)
