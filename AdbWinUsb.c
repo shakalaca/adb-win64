@@ -47,7 +47,7 @@ ADBWIN_API bool __cdecl AdbReadEndpointSync(ADBAPIHANDLE adb_endpoint,
                                     unsigned long* bytes_read,
                                     unsigned long time_out)
 {
-    return NULL;
+    return false;
 }
 
 ADBWIN_API bool __cdecl AdbWriteEndpointSync(ADBAPIHANDLE adb_endpoint,
@@ -56,7 +56,7 @@ ADBWIN_API bool __cdecl AdbWriteEndpointSync(ADBAPIHANDLE adb_endpoint,
                                      unsigned long* bytes_written,
                                      unsigned long time_out)
 {
-    return NULL;
+    return false;
 }
 
 

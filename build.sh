@@ -13,5 +13,5 @@ echo "\n>> Make... \n"
 make clean
 make
 echo "\n>> Copying adb back into current dir...\n"
-cp adb ../../../../
+cp adb.exe ../../../../
 echo "\n>> FINISH!\n"

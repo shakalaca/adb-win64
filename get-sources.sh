@@ -9,7 +9,7 @@ tar -xvzf openssl-1.0.2j.tar.gz
 # -------------------------
 
 # Branch to checkout from Android source code repo
-branch=android-4.4.4_r2.0.1
+branch=android-5.0.0_r7
 
 # DOWNLOAD necessary files
 # -------------------------
@@ -29,4 +29,5 @@ git clone -b $branch https://android.googlesource.com/platform/external/openssl
 git clone -b $branch https://android.googlesource.com/platform/external/libselinux
 cd ..
 mkdir platform
+cd platform
 git clone -b $branch https://android.googlesource.com/platform/development/

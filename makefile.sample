@@ -26,8 +26,8 @@ SRCS+= usb_vendors.c
 SRCS+= adb_auth_host.c
 SRCS+= sysdeps_win32.c
  
-VPATH+= ../libcutils
-SRCS+= list.c
+#VPATH+= ../libcutils
+#SRCS+= list.c
 #SRCS+= socket_inaddr_any_server.c
 #SRCS+= socket_local_client.c
 #SRCS+= socket_local_server.c
@@ -71,6 +71,7 @@ CPPFLAGS+= -D__STDC_FORMAT_MACROS=1
 CPPFLAGS+= -DHAVE_WIN32_PROC
 CPPFLAGS+= -DHAVE_WIN32_IPC
 CPPFLAGS+= -DHAVE_WINSOCK
+CPPFLAGS+= -DHAVE_OFF64_T
 CPPFLAGS+= -DADB_REVISION='"$(adb_version)"'
 CPPFLAGS+= -DZLIB_CONST
 CPPFLAGS+= -DADBWIN_EXPORTS
@@ -88,9 +89,9 @@ LIBS= -lcrypto -lpthread -lws2_32
  
 OBJS= $(SRCS:.c=.o)
  
-all: adb
+all: adb.exe
  
-adb: $(OBJS)
+adb.exe: $(OBJS)
 	$(LD) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
  
 clean:
