@@ -1,0 +1,98 @@
+# ADB makefile
+# ------------
+
+#TODO change TOOLCHAIN variable to your toolchain path 
+TOOLCHAIN= /usr/bin/x86_64-w64-mingw32-
+CC= $(TOOLCHAIN)gcc
+LD= $(TOOLCHAIN)gcc
+CXX=$(CC)
+
+
+SRCS+= /home/vagrant/adb-x64/openssl-1.0.2j/ms/applink.c
+SRCS+= adb.c
+#SRCS+= fdevent.c
+SRCS+= adb_client.c
+SRCS+= commandline.c
+SRCS+= console.c
+SRCS+= file_sync_client.c
+SRCS+= get_my_path_windows.c
+SRCS+= services.c
+SRCS+= sockets.c
+SRCS+= transport.c
+SRCS+= transport_local.c
+SRCS+= transport_usb.c
+SRCS+= usb_windows.c
+SRCS+= usb_vendors.c
+SRCS+= adb_auth_host.c
+SRCS+= sysdeps_win32.c
+ 
+VPATH+= ../libcutils
+SRCS+= list.c
+#SRCS+= socket_inaddr_any_server.c
+#SRCS+= socket_local_client.c
+#SRCS+= socket_local_server.c
+#SRCS+= socket_loopback_client.c
+#SRCS+= socket_loopback_server.c
+#SRCS+= socket_network_client.c
+#SRCS+= load_file.c
+ 
+VPATH+= ../libzipfile
+SRCS+= centraldir.c
+SRCS+= zipfile.c
+ 
+VPATH+= ../../../external/zlib/src
+SRCS+= adler32.c
+SRCS+= compress.c
+SRCS+= crc32.c
+SRCS+= deflate.c
+SRCS+= infback.c
+SRCS+= inffast.c
+SRCS+= inflate.c
+SRCS+= inftrees.c
+SRCS+= trees.c
+SRCS+= uncompr.c
+SRCS+= zutil.c
+
+VPATH+= ../../../../
+SRCS+= AdbWinUsb.c
+
+CPPFLAGS+= -D_mkdir=mkdir
+CPPFLAGS+= -DADB_HOST=1
+CPPFLAGS+= -DHAVE_FORKEXEC=1
+#CPPFLAGS+= -DHAVE_SYMLINKS
+#CPPFLAGS+= -DHAVE_TERMIO_H
+CPPFLAGS+= -DHAVE_SYS_SOCKET_H
+CPPFLAGS+= -D_GNU_SOURCE
+CPPFLAGS+= -D_XOPEN_SOURCE
+CPPFLAGS+= -std=gnu++11
+CPPFLAGS+= -D_WIN32
+CPPFLAGS+= -D_WIN32_WINNT=0x0600
+CPPFLAGS+= -D__STDC_FORMAT_MACROS=1
+CPPFLAGS+= -DHAVE_WIN32_PROC
+CPPFLAGS+= -DHAVE_WIN32_IPC
+CPPFLAGS+= -DHAVE_WINSOCK
+CPPFLAGS+= -DADB_REVISION='"$(adb_version)"'
+CPPFLAGS+= -DZLIB_CONST
+CPPFLAGS+= -DADBWIN_EXPORTS
+CPPFLAGS+= -I.
+CPPFLAGS+= -I../include
+CPPFLAGS+= -I../../../external/zlib
+CPPFLAGS+= -I../../../../openssl-1.0.2j/include
+CPPFLAGS+= -I../base/include 
+CPPFLAGS+= -I../../../platform/development/host/windows/usb/api/
+CFLAGS+= -O2 -g -Wall -Wno-unused-parameter
+
+LDFLAGS+= -L../../../../openssl-1.0.2j
+LIBS= -lcrypto -lpthread -lws2_32
+#LIBS+= -lrt 
+ 
+OBJS= $(SRCS:.c=.o)
+ 
+all: adb
+ 
+adb: $(OBJS)
+	$(LD) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
+ 
+clean:
+	rm -rf $(OBJS)
+
