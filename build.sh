@@ -8,6 +8,8 @@ makefile=makefile.sample
 # -------------------------
 echo "\n>> Copying makefile into system/core/adb...\n"
 cp $makefile android-adb/system/core/adb/makefile -f
+echo "\n>> Copying prebuilt dll and header file into system/core/adb...\n"
+cp prebuilt/* android-adb/system/core/adb/
 cd android-adb/system/core/adb/
 echo "\n>> Make... \n"
 make clean

@@ -10,13 +10,9 @@ CXX=$(CC)
 LOCAL_PATH:= $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 adb_version := $(shell git -C $(LOCAL_PATH) rev-parse --short=12 HEAD 2>/dev/null)-android
 
-VPATH+= ../../../../
-SRCS+= AdbWinUsb.c
-SRCS+= usb_none.c
-
 SRCS+= ../../../../openssl-1.0.2j/ms/applink.c
 
-#SRCS+= usb_windows.c
+SRCS+= usb_windows.c
 SRCS+= adb.c
 #SRCS+= fdevent.c
 SRCS+= adb_client.c
@@ -121,14 +117,15 @@ CPPFLAGS+= -I../include
 CPPFLAGS+= -I../../../external/zlib
 CPPFLAGS+= -I../../../../openssl-1.0.2j/include
 CPPFLAGS+= -I../base/include 
-CPPFLAGS+= -I../../../platform/development/host/windows/usb/api/
 CPPFLAGS+= -D__BEGIN_DECLS=/**/
 CPPFLAGS+= -D__END_DECLS=/**/
 CFLAGS+= -O2 -g -Wall -Wno-unused-parameter
 
+LDFLAGS+= -L.
 LDFLAGS+= -L../../../../openssl-1.0.2j -static-libstdc++ -static-libgcc
 LDFLAGS+= -municode
 LIBS= -lcrypto -lpthread -lws2_32 -lgdi32
+LIBS+= AdbWinUsbApi.dll AdbWinApi.dll
 LIBS+= -static -lstdc++
 #LIBS+= -lrt 
  
