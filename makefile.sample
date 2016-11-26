@@ -70,6 +70,7 @@ CPPFLAGS+= -I../base/include
 CPPFLAGS+= -D__BEGIN_DECLS=/**/
 CPPFLAGS+= -D__END_DECLS=/**/
 CFLAGS+= -O2 -g -Wall -Wno-unused-parameter
+CPPFLAGS+= -DUNICODE=1 -D_UNICODE=1
 
 LDFLAGS+= -L.
 LDFLAGS+= -L../../../../openssl-1.0.2j -static-libstdc++ -static-libgcc
