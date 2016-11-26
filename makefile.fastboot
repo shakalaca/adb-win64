@@ -1,0 +1,155 @@
+# ADB makefile
+# ------------
+
+#TODO change TOOLCHAIN variable to your toolchain path 
+TOOLCHAIN= /usr/bin/x86_64-w64-mingw32-
+CC= $(TOOLCHAIN)gcc
+LD= $(TOOLCHAIN)gcc
+CXX=$(CC)
+
+LOCAL_PATH:= $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+fastboot_version := $(shell git -C $(LOCAL_PATH) rev-parse --short=12 HEAD 2>/dev/null)-android
+
+SRCS+= bootimg_utils.c
+SRCS+= engine.c
+SRCS+= fastboot.c
+SRCS+= fs.c
+SRCS+= protocol.c
+SRCS+= socket.c
+SRCS+= tcp.c
+SRCS+= udp.c
+SRCS+= util.c
+SRCS+= usb_windows.c
+SRCS+= util_windows.c
+
+SRCS+= ../adb/diagnose_usb.c
+
+VPATH+= ../../../external/zlib/src
+SRCS+= adler32.c
+SRCS+= compress.c
+SRCS+= crc32.c
+SRCS+= deflate.c
+SRCS+= infback.c
+SRCS+= inffast.c
+SRCS+= inflate.c
+SRCS+= inftrees.c
+SRCS+= trees.c
+SRCS+= uncompr.c
+SRCS+= zutil.c
+SRCS+= gzclose.c
+SRCS+= gzwrite.c
+SRCS+= gzread.c
+SRCS+= gzlib.c
+
+VPATH+= ../libutils
+SRCS+= FileMap.c
+
+VPATH+= ../base
+SRCS+= file.c
+SRCS+= logging.c
+SRCS+= parsenetaddress.c
+SRCS+= stringprintf.c
+SRCS+= strings.c
+SRCS+= test_utils.c
+SRCS+= errors_windows.c
+SRCS+= utf8.c
+
+VPATH+= ../libziparchive
+SRCS+= zip_archive.c
+
+VPATH+= ../libsparse
+SRCS+= backed_block.c
+SRCS+= output_file.c
+SRCS+= sparse.c
+SRCS+= sparse_crc32.c
+SRCS+= sparse_err.c
+SRCS+= sparse_read.c
+
+VPATH+= ../../extras/ext4_utils/
+SRCS+= make_ext4fs.c
+SRCS+= ext4fixup.c
+SRCS+= ext4_utils.c
+SRCS+= allocate.c
+SRCS+= contents.c
+SRCS+= extent.c
+SRCS+= indirect.c
+SRCS+= sha1.c
+SRCS+= wipe.c
+SRCS+= crc16.c
+SRCS+= ext4_sb.c
+
+VPATH+= ../liblog
+SRCS+= log_event_list.c
+SRCS+= log_event_write.c
+SRCS+= logger_write.c
+SRCS+= config_write.c
+SRCS+= logger_name.c
+SRCS+= logger_lock.c
+SRCS+= fake_log_device.c
+SRCS+= fake_writer.c
+SRCS+= uio.c
+
+SRCS+= ../libcutils/socket_inaddr_any_server_windows.c
+SRCS+= ../libcutils/sockets_windows.c
+SRCS+= ../libcutils/sockets.c
+SRCS+= ../libcutils/socket_network_client_windows.c
+
+VPATH+= ../../../external/gtest/src
+SRCS+= gtest-all.c
+
+CPPFLAGS+= -D_mkdir=mkdir
+CPPFLAGS+= -DHAVE_FORKEXEC=1
+CPPFLAGS+= -DHAVE_SYS_SOCKET_H
+CPPFLAGS+= -D_GNU_SOURCE
+CPPFLAGS+= -D_XOPEN_SOURCE
+CPPFLAGS+= -DMB_CUR_MAX=1
+CPPFLAGS+= -D_WIN32
+CPPFLAGS+= -D_WIN32_WINNT=0x0600
+CPPFLAGS+= -D__STDC_FORMAT_MACROS=1
+CPPFLAGS+= -DHAVE_WIN32_PROC
+CPPFLAGS+= -DHAVE_WIN32_IPC
+CPPFLAGS+= -DHAVE_WINSOCK
+CPPFLAGS+= -DHAVE_OFF64_T
+CPPFLAGS+= -DFASTBOOT_REVISION='"$(fastboot_version)"'
+CPPFLAGS+= -DADBWIN_EXPORTS
+CPPFLAGS+= -D__BEGIN_DECLS=/**/
+CPPFLAGS+= -D__END_DECLS=/**/
+
+CPPFLAGS+= -I.
+CPPFLAGS+= -I../include
+CPPFLAGS+= -I../base/include 
+CPPFLAGS+= -I../libsparse/include
+CPPFLAGS+= -I../../../external/gtest/include
+CPPFLAGS+= -I../../../external/gtest
+CPPFLAGS+= -I../../../external/zlib
+CPPFLAGS+= -I../adb
+CPPFLAGS+= -I../mkbootimg
+CPPFLAGS+= -I../../extras/ext4_utils
+CPPFLAGS+= -I../../extras/f2fs_utils
+
+CXXFLAGS+= -std=gnu++11
+CXXFLAGS+= -mno-ms-bitfields
+
+CFLAGS+= -DUSE_MINGW
+CFLAGS+= -DZLIB_CONST
+CFLAGS+= -DFAKE_LOG_DEVICE=1
+CFLAGS+= -DLIBLOG_LOG_TAG=1005
+CFLAGS+= -DSNET_EVENT_LOG_TAG=1397638484
+CFLAGS+= -std=gnu99
+CFLAGS+= -O2 -g -Wall -Wno-unused-parameter
+
+LDFLAGS+= -L.
+LDFLAGS+= -static-libstdc++ -static-libgcc
+LIBS= -lws2_32 
+LIBS+= AdbWinUsbApi.dll AdbWinApi.dll
+LIBS+= -static -lstdc++
+ 
+OBJS= $(SRCS:.c=.o)
+ 
+all: fastboot.exe
+ 
+fastboot.exe: $(OBJS)
+	$(LD) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
+ 
+clean:
+	rm -rf $(OBJS)

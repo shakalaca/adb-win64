@@ -29,6 +29,7 @@ git clone -b $branch https://android.googlesource.com/platform/external/openssl
 git clone -b $branch https://android.googlesource.com/platform/external/libselinux
 git clone -b $branch https://android.googlesource.com/platform/external/zopfli/
 git clone -b $branch https://android.googlesource.com/platform/external/safe-iop/
+git clone -b $branch https://android.googlesource.com/platform/external/gtest/
 cd ..
 mkdir platform
 cd platform

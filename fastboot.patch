@@ -1,0 +1,16 @@
+diff --git a/fastboot/fastboot.cpp b/fastboot/fastboot.cpp
+index c1c3174..f04bb01 100644
+--- a/fastboot/fastboot.cpp
++++ b/fastboot/fastboot.cpp
+@@ -157,6 +157,11 @@ std::string find_item(const char* item, const char* product) {
+     return find_item_given_name(fn, product);
+ }
+ 
++#if defined( __x86_64__)
++#define stat stat64
++#define fstat fstat64
++#endif
++
+ static int64_t get_file_size(int fd) {
+     struct stat sb;
+     return fstat(fd, &sb) == -1 ? -1 : sb.st_size;
