@@ -72,7 +72,6 @@ CPPFLAGS+= -D__END_DECLS=/**/
 CPPFLAGS+= -DUNICODE=1 -D_UNICODE=1
 CPPFLAGS+= -O2 -Wall -Wno-unused-parameter
 
-LDFLAGS+= -L.
 LDFLAGS+= -L../../../../openssl-1.0.2j -static-libstdc++ -static-libgcc
 LDFLAGS+= -municode
 LIBS= -lcrypto -lpthread -lws2_32 -lgdi32
