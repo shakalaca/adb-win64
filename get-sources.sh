@@ -27,7 +27,8 @@ cd ..
 mkdir external
 cd external
 git clone -b $branch https://android.googlesource.com/platform/external/zlib
-git clone -b $branch https://android.googlesource.com/platform/external/gtest/
+#git clone -b $branch https://android.googlesource.com/platform/external/gtest/
+git clone -b android-7.1.2_r33 https://android.googlesource.com/platform/external/gtest/
 git clone -b $branch https://android.googlesource.com/platform/external/mdnsresponder/
 patch -p1 -d mdnsresponder < ../../patch/external_mdnsresponder.patch
 #git clone -b $branch https://android.googlesource.com/platform/external/openssl
