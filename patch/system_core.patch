@@ -84,6 +84,24 @@ index 271ca95..f45d8ce 100644
  static int64_t get_file_size(int fd) {
      struct stat sb;
      return fstat(fd, &sb) == -1 ? -1 : sb.st_size;
+diff --git a/libcutils/include/cutils/atomic.h b/libcutils/include/cutils/atomic.h
+index 0c88bfe..ee0bd2c 100644
+--- a/libcutils/include/cutils/atomic.h
++++ b/libcutils/include/cutils/atomic.h
+@@ -19,7 +19,13 @@
+ 
+ #include <stdint.h>
+ #include <sys/types.h>
++#ifdef __cplusplus
++#include <atomic>
++#define _Atomic(T) atomic<T>
++using namespace std;
++#else
+ #include <stdatomic.h>
++#endif
+ 
+ #ifndef ANDROID_ATOMIC_INLINE
+ #define ANDROID_ATOMIC_INLINE static inline
 diff --git a/libcutils/include/cutils/trace.h b/libcutils/include/cutils/trace.h
 index fcbdc9b..5fae30c 100644
 --- a/libcutils/include/cutils/trace.h
