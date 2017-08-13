@@ -4,6 +4,7 @@
 # -------------------------
 wget https://www.openssl.org/source/openssl-1.0.2j.tar.gz
 tar -xvzf openssl-1.0.2j.tar.gz
+patch -p0 -d openssl-1.0.2j < patch/openssl.patch
 
 #         CONFIG
 # -------------------------
@@ -20,7 +21,7 @@ cd android-adb
 mkdir system
 cd system
 git clone -b $branch https://android.googlesource.com/platform/system/core
-patch -p1 -d core < ../../../patch/system_core.patch
+patch -p1 -d core < ../../patch/system_core.patch
 git clone -b $branch https://android.googlesource.com/platform/system/extras
 cd ..
 mkdir external
@@ -28,7 +29,7 @@ cd external
 git clone -b $branch https://android.googlesource.com/platform/external/zlib
 git clone -b $branch https://android.googlesource.com/platform/external/gtest/
 git clone -b $branch https://android.googlesource.com/platform/external/mdnsresponder/
-patch -p1 < ../../../patch/external_mdnsresponder.patch
+patch -p1 -d mdnsresponder < ../../patch/external_mdnsresponder.patch
 #git clone -b $branch https://android.googlesource.com/platform/external/openssl
 #git clone -b $branch https://android.googlesource.com/platform/external/libselinux
 #git clone -b $branch https://android.googlesource.com/platform/external/zopfli/
