@@ -20,6 +20,7 @@ cd android-adb
 mkdir system
 cd system
 git clone -b $branch https://android.googlesource.com/platform/system/core
+patch -p1 -d core < ../../../patch/fastboot.patch
 git clone -b $branch https://android.googlesource.com/platform/system/extras
 cd ..
 mkdir external
