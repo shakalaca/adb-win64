@@ -10,31 +10,33 @@ CXX=$(CC)
 LOCAL_PATH:= $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 adb_version := $(shell git -C $(LOCAL_PATH) rev-parse --short=12 HEAD 2>/dev/null)-android
 
-SRCS+= usb_windows.c
 SRCS+= adb.c
-SRCS+= adb_client.c
-SRCS+= commandline.c
-SRCS+= console.c
-SRCS+= file_sync_client.c
-SRCS+= services.c
+SRCS+= adb_auth.c
+SRCS+= adb_io.c
+SRCS+= adb_listeners.c
+SRCS+= adb_trace.c
+SRCS+= adb_utils.c
+SRCS+= fdevent.c
 SRCS+= sockets.c
 SRCS+= transport.c
 SRCS+= transport_local.c
 SRCS+= transport_usb.c
+
 SRCS+= sysdeps_win32.c
 SRCS+= sysdeps/win32/stat.c
-SRCS+= bugreport.c
-SRCS+= adb_utils.c
-SRCS+= adb_io.c
-SRCS+= adb_auth.c
+SRCS+= usb_windows.c
 SRCS+= adb_auth_host.c
-SRCS+= adb_listeners.c
-SRCS+= shell_service_protocol.c
-SRCS+= client/main.c
-SRCS+= line_printer.c
-SRCS+= fdevent.c
-SRCS+= adb_trace.c
 SRCS+= diagnose_usb.c
+
+SRCS+= adb_client.c
+SRCS+= bugreport.c
+SRCS+= client/main.c
+SRCS+= console.c
+SRCS+= commandline.c
+SRCS+= file_sync_client.c
+SRCS+= line_printer.c
+SRCS+= services.c
+SRCS+= shell_service_protocol.c
 
 VPATH+= ../base
 SRCS+= file.c
