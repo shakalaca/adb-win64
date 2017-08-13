@@ -9,7 +9,7 @@ tar -xvzf openssl-1.0.2j.tar.gz
 # -------------------------
 
 # Branch to checkout from Android source code repo
-branch=android-7.1.0_r7
+branch=android-o-preview-4
 
 # DOWNLOAD necessary files
 # -------------------------
@@ -20,13 +20,15 @@ cd android-adb
 mkdir system
 cd system
 git clone -b $branch https://android.googlesource.com/platform/system/core
-patch -p1 -d core < ../../../patch/fastboot.patch
+patch -p1 -d core < ../../../patch/system_core.patch
 git clone -b $branch https://android.googlesource.com/platform/system/extras
 cd ..
 mkdir external
 cd external
 git clone -b $branch https://android.googlesource.com/platform/external/zlib
 git clone -b $branch https://android.googlesource.com/platform/external/gtest/
+git clone -b $branch https://android.googlesource.com/platform/external/mdnsresponder/
+patch -p1 < ../../../patch/external_mdnsresponder.patch
 #git clone -b $branch https://android.googlesource.com/platform/external/openssl
 #git clone -b $branch https://android.googlesource.com/platform/external/libselinux
 #git clone -b $branch https://android.googlesource.com/platform/external/zopfli/
