@@ -1,0 +1,104 @@
+diff --git a/adb/adb_auth_host.cpp b/adb/adb_auth_host.cpp
+index 365bf77..22e4b76 100644
+--- a/adb/adb_auth_host.cpp
++++ b/adb/adb_auth_host.cpp
+@@ -34,7 +34,6 @@
+ #include <android-base/stringprintf.h>
+ #include <android-base/strings.h>
+ #include <crypto_utils/android_pubkey.h>
+-#include <openssl/base64.h>
+ #include <openssl/evp.h>
+ #include <openssl/objects.h>
+ #include <openssl/pem.h>
+@@ -73,6 +72,27 @@ static std::string get_user_info() {
+     return " " + username + "@" + hostname;
+ }
+ 
++int EVP_EncodedLength(size_t *out_len, size_t len) {
++  if (len + 2 < len) {
++    return 0;
++  }
++  len += 2;
++  len /= 3;
++
++  if (((len << 2) >> 2) != len) {
++    return 0;
++  }
++  len <<= 2;
++
++  if (len + 1 < len) {
++    return 0;
++  }
++  len++;
++
++  *out_len = len;
++  return 1;
++}
++
+ static bool write_public_keyfile(RSA* private_key, const std::string& private_key_path) {
+     LOG(INFO) << "write_public_keyfile...";
+ 
+diff --git a/adb/sysdeps_win32.cpp b/adb/sysdeps_win32.cpp
+index 5873b2b..11f0742 100644
+--- a/adb/sysdeps_win32.cpp
++++ b/adb/sysdeps_win32.cpp
+@@ -2553,7 +2553,7 @@ static std::string ToLower(const std::string& anycase) {
+     // copy string
+     std::string str(anycase);
+     // transform the copy
+-    std::transform(str.begin(), str.end(), str.begin(), tolower);
++    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+     return str;
+ }
+ 
+diff --git a/base/file.cpp b/base/file.cpp
+index a2f2887..bbbb52d 100644
+--- a/base/file.cpp
++++ b/base/file.cpp
+@@ -246,9 +246,9 @@ std::string GetExecutablePath() {
+   }
+   return path;
+ #elif defined(_WIN32)
+-  char path[PATH_MAX + 1];
+-  DWORD result = GetModuleFileName(NULL, path, sizeof(path) - 1);
+-  if (result == 0 || result == sizeof(path) - 1) return "";
++  CHAR path[PATH_MAX + 1];
++  DWORD result = GetModuleFileNameA(NULL, path, arraysize(path) - 1);
++  if (result == 0 || result == arraysize(path) - 1) return "";
+   path[PATH_MAX - 1] = 0;
+   return path;
+ #else
+diff --git a/fastboot/fastboot.cpp b/fastboot/fastboot.cpp
+index 271ca95..f45d8ce 100644
+--- a/fastboot/fastboot.cpp
++++ b/fastboot/fastboot.cpp
+@@ -151,6 +151,11 @@ static std::string find_item(const std::string& item) {
+     return "";
+ }
+ 
++#if defined( __x86_64__)
++#define stat stat64
++#define fstat fstat64
++#endif
++
+ static int64_t get_file_size(int fd) {
+     struct stat sb;
+     return fstat(fd, &sb) == -1 ? -1 : sb.st_size;
+diff --git a/libcutils/include/cutils/trace.h b/libcutils/include/cutils/trace.h
+index fcbdc9b..5fae30c 100644
+--- a/libcutils/include/cutils/trace.h
++++ b/libcutils/include/cutils/trace.h
+@@ -18,7 +18,13 @@
+ #define _LIBS_CUTILS_TRACE_H
+ 
+ #include <inttypes.h>
++#ifdef __cplusplus
++#include <atomic>
++#define _Atomic(T) atomic<T>
++using namespace std;
++#else
+ #include <stdatomic.h>
++#endif
+ #include <stdbool.h>
+ #include <stdint.h>
+ #include <stdio.h>
