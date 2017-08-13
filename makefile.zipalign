@@ -65,7 +65,8 @@ SRCS+= ../../../../external/zlib/src/trees.c
 SRCS+= ../../../../external/zlib/src/uncompr.c
 SRCS+= ../../../../external/zlib/src/zutil.c
 
-CPPFLAGS+= -std=gnu++11
+CXXFLAGS+= -std=gnu++11
+
 CPPFLAGS+= -I.
 CPPFLAGS+= -I../../../../external/zlib
 CPPFLAGS+= -I../../../../external/safe-iop/include/
