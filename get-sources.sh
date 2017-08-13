@@ -25,8 +25,6 @@ cd ..
 mkdir external
 cd external
 git clone -b $branch https://android.googlesource.com/platform/external/zlib
-git clone -b $branch https://android.googlesource.com/platform/external/openssl
-git clone -b $branch https://android.googlesource.com/platform/external/libselinux
 git clone -b $branch https://android.googlesource.com/platform/external/zopfli/
 git clone -b $branch https://android.googlesource.com/platform/external/safe-iop/
 git clone -b $branch https://android.googlesource.com/platform/external/gtest/
