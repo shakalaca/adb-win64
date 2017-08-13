@@ -27,19 +27,16 @@ cd ..
 mkdir external
 cd external
 git clone -b $branch https://android.googlesource.com/platform/external/zlib
-#git clone -b $branch https://android.googlesource.com/platform/external/gtest/
 git clone -b android-7.1.2_r33 https://android.googlesource.com/platform/external/gtest/
 git clone -b $branch https://android.googlesource.com/platform/external/mdnsresponder/
 patch -p1 -d mdnsresponder < ../../patch/external_mdnsresponder.patch
-#git clone -b $branch https://android.googlesource.com/platform/external/openssl
-#git clone -b $branch https://android.googlesource.com/platform/external/libselinux
-#git clone -b $branch https://android.googlesource.com/platform/external/zopfli/
-#git clone -b $branch https://android.googlesource.com/platform/external/safe-iop/
+git clone -b $branch https://android.googlesource.com/platform/external/zopfli/
+git clone -b $branch https://android.googlesource.com/platform/external/safe-iop/
 cd ..
-#mkdir platform
-#cd platform
-#git clone -b $branch https://android.googlesource.com/platform/development/
-#git clone -b $branch https://android.googlesource.com/platform/build/
-#mkdir frameworks
-#cd frameworks
-#git clone -b $branch https://android.googlesource.com/platform/frameworks/base/
+mkdir platform
+cd platform
+git clone -b $branch https://android.googlesource.com/platform/development/
+git clone -b $branch https://android.googlesource.com/platform/build/
+mkdir frameworks
+cd frameworks
+git clone -b $branch https://android.googlesource.com/platform/frameworks/base/

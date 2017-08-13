@@ -21,6 +21,11 @@ SRCS+= config_write.c
 SRCS+= logger_lock.c
 SRCS+= fake_writer.c
 SRCS+= logger_name.c
+SRCS+= stderr_write.c
+SRCS+= config_read.c
+SRCS+= local_logger.c
+SRCS+= logprint.c
+SRCS+= uio.c
 
 VPATH+= ../../../../system/core/libziparchive/
 SRCS+= zip_archive.c
@@ -65,14 +70,17 @@ SRCS+= ../../../../external/zlib/src/trees.c
 SRCS+= ../../../../external/zlib/src/uncompr.c
 SRCS+= ../../../../external/zlib/src/zutil.c
 
-CPPFLAGS+= -std=gnu++11
+CXXFLAGS+= -std=gnu++11
+
 CPPFLAGS+= -I.
 CPPFLAGS+= -I../../../../external/zlib
 CPPFLAGS+= -I../../../../external/safe-iop/include/
 CPPFLAGS+= -I../../../../external/zopfli/src/
 CPPFLAGS+= -I../../../../system/core/include/
 CPPFLAGS+= -I../../../../system/core/base/include/
+CPPFLAGS+= -I../../../../system/core/libziparchive/include
 CPPFLAGS+= -I../../../../platform/frameworks/base/include/
+CPPFLAGS+= -I../../../../platform/frameworks/base/libs/androidfw/include
 CPPFLAGS+= -D__STDC_FORMAT_MACROS
 CPPFLAGS+= -Du_int32_t=uint32_t
 CPPFLAGS+= -DFAKE_LOG_DEVICE=1
