@@ -9,7 +9,7 @@ tar -xvzf openssl-1.0.2j.tar.gz
 # -------------------------
 
 # Branch to checkout from Android source code repo
-branch=android-7.1.0_r7
+branch=android-7.1.2_r33
 
 # DOWNLOAD necessary files
 # -------------------------
@@ -20,6 +20,7 @@ cd android-adb
 mkdir system
 cd system
 git clone -b $branch https://android.googlesource.com/platform/system/core
+patch -p1 -d core < ../../system_core.patch
 git clone -b $branch https://android.googlesource.com/platform/system/extras
 cd ..
 mkdir external

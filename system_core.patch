@@ -1,0 +1,46 @@
+diff --git a/adb/sockets.cpp b/adb/sockets.cpp
+index 63b7df6..464f2e3 100644
+--- a/adb/sockets.cpp
++++ b/adb/sockets.cpp
+@@ -36,7 +36,6 @@
+ 
+ #include "adb.h"
+ #include "adb_io.h"
+-#include "sysdeps/mutex.h"
+ #include "transport.h"
+ 
+ static std::recursive_mutex& local_socket_list_lock = *new std::recursive_mutex();
+diff --git a/fastboot/fastboot.cpp b/fastboot/fastboot.cpp
+index 2b6cad1..7b93823 100644
+--- a/fastboot/fastboot.cpp
++++ b/fastboot/fastboot.cpp
+@@ -159,6 +159,11 @@ std::string find_item(const char* item, const char* product) {
+     return find_item_given_name(fn, product);
+ }
+ 
++#if defined( __x86_64__)
++#define stat stat64
++#define fstat fstat64
++#endif
++
+ static int64_t get_file_size(int fd) {
+     struct stat sb;
+     return fstat(fd, &sb) == -1 ? -1 : sb.st_size;
+diff --git a/include/cutils/atomic.h b/include/cutils/atomic.h
+index ded972a..edabbd4 100644
+--- a/include/cutils/atomic.h
++++ b/include/cutils/atomic.h
+@@ -19,7 +19,13 @@
+ 
+ #include <stdint.h>
+ #include <sys/types.h>
++#ifdef __cplusplus
++#include <atomic>
++#define _Atomic(T) atomic<T>
++using namespace std;
++#else
+ #include <stdatomic.h>
++#endif
+ 
+ #ifndef ANDROID_ATOMIC_INLINE
+ #define ANDROID_ATOMIC_INLINE static inline
