@@ -20,7 +20,6 @@ SRCS+= tcp.c
 SRCS+= udp.c
 SRCS+= util.c
 SRCS+= usb_windows.c
-SRCS+= util_windows.c
 
 SRCS+= ../adb/diagnose_usb.c
 
@@ -88,14 +87,15 @@ SRCS+= logger_lock.c
 SRCS+= fake_log_device.c
 SRCS+= fake_writer.c
 SRCS+= uio.c
+SRCS+= stderr_write.c
+SRCS+= config_read.c
+SRCS+= local_logger.c
+SRCS+= logprint.c
 
 SRCS+= ../libcutils/socket_inaddr_any_server_windows.c
 SRCS+= ../libcutils/sockets_windows.c
 SRCS+= ../libcutils/sockets.c
 SRCS+= ../libcutils/socket_network_client_windows.c
-
-VPATH+= ../../../external/gtest/src
-SRCS+= gtest-all.c
 
 CPPFLAGS+= -D_mkdir=mkdir
 CPPFLAGS+= -DHAVE_FORKEXEC=1
@@ -110,6 +110,7 @@ CPPFLAGS+= -DHAVE_WIN32_PROC
 CPPFLAGS+= -DHAVE_WIN32_IPC
 CPPFLAGS+= -DHAVE_WINSOCK
 CPPFLAGS+= -DHAVE_OFF64_T
+CPPFLAGS+= -DFASTBOOT_VERSION='"$(fastboot_version)"'
 CPPFLAGS+= -DFASTBOOT_REVISION='"$(fastboot_version)"'
 CPPFLAGS+= -DADBWIN_EXPORTS
 CPPFLAGS+= -D__BEGIN_DECLS=/**/
@@ -119,13 +120,12 @@ CPPFLAGS+= -I.
 CPPFLAGS+= -I../include
 CPPFLAGS+= -I../base/include 
 CPPFLAGS+= -I../libsparse/include
-CPPFLAGS+= -I../../../external/gtest/include
-CPPFLAGS+= -I../../../external/gtest
 CPPFLAGS+= -I../../../external/zlib
 CPPFLAGS+= -I../adb
 CPPFLAGS+= -I../mkbootimg
-CPPFLAGS+= -I../../extras/ext4_utils
+CPPFLAGS+= -I../../extras/ext4_utils/include
 CPPFLAGS+= -I../../extras/f2fs_utils
+CPPFLAGS+= -I../libziparchive/include
 
 CXXFLAGS+= -std=gnu++11
 CXXFLAGS+= -mno-ms-bitfields

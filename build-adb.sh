@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Makefile to use (will be automatically copied into system/core/adb)
-makefile=makefile.sample
+makefile=makefile.adb
 
 
 # MAKE

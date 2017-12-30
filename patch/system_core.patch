@@ -1,0 +1,289 @@
+diff --git a/adb/adb_auth_host.cpp b/adb/adb_auth_host.cpp
+index 365bf77..22e4b76 100644
+--- a/adb/adb_auth_host.cpp
++++ b/adb/adb_auth_host.cpp
+@@ -34,7 +34,6 @@
+ #include <android-base/stringprintf.h>
+ #include <android-base/strings.h>
+ #include <crypto_utils/android_pubkey.h>
+-#include <openssl/base64.h>
+ #include <openssl/evp.h>
+ #include <openssl/objects.h>
+ #include <openssl/pem.h>
+@@ -73,6 +72,27 @@ static std::string get_user_info() {
+     return " " + username + "@" + hostname;
+ }
+ 
++int EVP_EncodedLength(size_t *out_len, size_t len) {
++  if (len + 2 < len) {
++    return 0;
++  }
++  len += 2;
++  len /= 3;
++
++  if (((len << 2) >> 2) != len) {
++    return 0;
++  }
++  len <<= 2;
++
++  if (len + 1 < len) {
++    return 0;
++  }
++  len++;
++
++  *out_len = len;
++  return 1;
++}
++
+ static bool write_public_keyfile(RSA* private_key, const std::string& private_key_path) {
+     LOG(INFO) << "write_public_keyfile...";
+ 
+diff --git a/adb/commandline.cpp b/adb/commandline.cpp
+index 4979eef..2734725 100644
+--- a/adb/commandline.cpp
++++ b/adb/commandline.cpp
+@@ -870,7 +870,7 @@ static int adb_sideload_host(const char* filename) {
+ 
+     fprintf(stderr, "connecting...\n");
+     std::string service = android::base::StringPrintf(
+-        "sideload-host:%d:%d", static_cast<int>(sb.st_size), SIDELOAD_HOST_BLOCK_SIZE);
++        "sideload-host:%" PRIu32 ":%d", static_cast<uint32_t>(sb.st_size), SIDELOAD_HOST_BLOCK_SIZE);
+     std::string error;
+     unique_fd device_fd(adb_connect(service, &error));
+     if (device_fd < 0) {
+@@ -885,7 +885,7 @@ static int adb_sideload_host(const char* filename) {
+ 
+     char buf[SIDELOAD_HOST_BLOCK_SIZE];
+ 
+-    size_t xfer = 0;
++    uint32_t xfer = 0;
+     int last_percent = -1;
+     while (true) {
+         if (!ReadFdExactly(device_fd, buf, 8)) {
+@@ -896,25 +896,25 @@ static int adb_sideload_host(const char* filename) {
+ 
+         if (strcmp("DONEDONE", buf) == 0) {
+             printf("\rTotal xfer: %.2fx%*s\n",
+-                   static_cast<double>(xfer) / (sb.st_size ? sb.st_size : 1),
++                   static_cast<double>(xfer) / (static_cast<uint32_t>(sb.st_size) ? static_cast<uint32_t>(sb.st_size) : 1),
+                    static_cast<int>(strlen(filename) + 10), "");
+             return 0;
+         }
+ 
+         int block = strtol(buf, NULL, 10);
+ 
+-        size_t offset = block * SIDELOAD_HOST_BLOCK_SIZE;
+-        if (offset >= static_cast<size_t>(sb.st_size)) {
++        uint32_t offset = block * SIDELOAD_HOST_BLOCK_SIZE;
++        if (offset >= static_cast<uint32_t>(sb.st_size)) {
+             fprintf(stderr, "* attempt to read block %d past end\n", block);
+             return -1;
+         }
+ 
+-        size_t to_write = SIDELOAD_HOST_BLOCK_SIZE;
+-        if ((offset + SIDELOAD_HOST_BLOCK_SIZE) > static_cast<size_t>(sb.st_size)) {
++        uint32_t to_write = SIDELOAD_HOST_BLOCK_SIZE;
++        if ((offset + SIDELOAD_HOST_BLOCK_SIZE) > static_cast<uint32_t>(sb.st_size)) {
+             to_write = sb.st_size - offset;
+         }
+ 
+-        if (adb_lseek(package_fd, offset, SEEK_SET) != static_cast<int>(offset)) {
++        if (adb_lseek(package_fd, offset, SEEK_SET) != offset) {
+             fprintf(stderr, "* failed to seek to package block: %s\n", strerror(errno));
+             return -1;
+         }
+@@ -936,7 +936,7 @@ static int adb_sideload_host(const char* filename) {
+         // extra access to things like the zip central directory).
+         // This estimate of the completion becomes 100% when we've
+         // transferred ~2.13 (=100/47) times the package size.
+-        int percent = static_cast<int>(xfer * 47LL / (sb.st_size ? sb.st_size : 1));
++        int percent = xfer * 47LL / (static_cast<uint32_t>(sb.st_size) ? static_cast<uint32_t>(sb.st_size) : 1);
+         if (percent != last_percent) {
+             printf("\rserving: '%s'  (~%d%%)    ", filename, percent);
+             fflush(stdout);
+diff --git a/adb/sysdeps.h b/adb/sysdeps.h
+index f195b4e..f082893 100644
+--- a/adb/sysdeps.h
++++ b/adb/sysdeps.h
+@@ -194,7 +194,7 @@ extern int  adb_open(const char*  path, int  options);
+ extern int  adb_creat(const char*  path, int  mode);
+ extern int  adb_read(int  fd, void* buf, int len);
+ extern int  adb_write(int  fd, const void*  buf, int  len);
+-extern int  adb_lseek(int  fd, int  pos, int  where);
++extern int64_t  adb_lseek(int  fd, int64_t  pos, int  where);
+ extern int  adb_shutdown(int  fd);
+ extern int  adb_close(int  fd);
+ extern int  adb_register_socket(SOCKET s);
+@@ -551,9 +551,9 @@ static __inline__  int  adb_write(int  fd, const void*  buf, size_t  len)
+ #undef   write
+ #define  write  ___xxx_write
+ 
+-static __inline__ int   adb_lseek(int  fd, int  pos, int  where)
++static __inline__ int64_t   adb_lseek(int  fd, int64_t  pos, int  where)
+ {
+-    return lseek(fd, pos, where);
++    return lseek64(fd, pos, where);
+ }
+ #undef   lseek
+ #define  lseek   ___xxx_lseek
+diff --git a/adb/sysdeps_win32.cpp b/adb/sysdeps_win32.cpp
+index f997e6b..43d7e71 100644
+--- a/adb/sysdeps_win32.cpp
++++ b/adb/sysdeps_win32.cpp
+@@ -54,14 +54,14 @@ typedef struct EventHookRec_* EventHook;
+ typedef struct FHClassRec_ {
+     void (*_fh_init)(FH);
+     int (*_fh_close)(FH);
+-    int (*_fh_lseek)(FH, int, int);
++    int64_t (*_fh_lseek)(FH, int64_t, int);
+     int (*_fh_read)(FH, void*, int);
+     int (*_fh_write)(FH, const void*, int);
+ } FHClassRec;
+ 
+ static void _fh_file_init(FH);
+ static int _fh_file_close(FH);
+-static int _fh_file_lseek(FH, int, int);
++static int64_t _fh_file_lseek(FH, int64_t, int);
+ static int _fh_file_read(FH, void*, int);
+ static int _fh_file_write(FH, const void*, int);
+ 
+@@ -75,7 +75,7 @@ static const FHClassRec _fh_file_class = {
+ 
+ static void _fh_socket_init(FH);
+ static int _fh_socket_close(FH);
+-static int _fh_socket_lseek(FH, int, int);
++static int64_t _fh_socket_lseek(FH, int64_t, int);
+ static int _fh_socket_read(FH, void*, int);
+ static int _fh_socket_write(FH, const void*, int);
+ 
+@@ -284,9 +284,10 @@ static int _fh_file_write( FH  f,  const void*  buf, int   len ) {
+     return  (int)wrote_bytes;
+ }
+ 
+-static int _fh_file_lseek( FH  f, int  pos, int  origin ) {
++static int64_t _fh_file_lseek( FH  f, int64_t  pos, int  origin ) {
+     DWORD  method;
+-    DWORD  result;
++    LARGE_INTEGER result;
++    LARGE_INTEGER pos_input;
+ 
+     switch (origin)
+     {
+@@ -298,14 +299,15 @@ static int _fh_file_lseek( FH  f, int  pos, int  origin ) {
+             return -1;
+     }
+ 
+-    result = SetFilePointer( f->fh_handle, pos, NULL, method );
+-    if (result == INVALID_SET_FILE_POINTER) {
++    pos_input.QuadPart = pos;
++    if (!SetFilePointerEx( f->fh_handle, pos_input, &result, method )) {
+         errno = EIO;
+         return -1;
+     } else {
+         f->eof = 0;
+     }
+-    return (int)result;
++
++    return result.QuadPart;
+ }
+ 
+ 
+@@ -449,7 +451,7 @@ int  adb_write(int  fd, const void*  buf, int  len)
+ }
+ 
+ 
+-int  adb_lseek(int  fd, int  pos, int  where)
++int64_t  adb_lseek(int  fd, int64_t  pos, int  where)
+ {
+     FH     f = _fh_from_int(fd, __func__);
+ 
+@@ -597,7 +599,7 @@ static int _fh_socket_close( FH  f ) {
+     return 0;
+ }
+ 
+-static int _fh_socket_lseek( FH  f, int pos, int origin ) {
++static int64_t _fh_socket_lseek( FH  f, int64_t pos, int origin ) {
+     errno = EPIPE;
+     return -1;
+ }
+@@ -2578,7 +2580,7 @@ static std::string ToLower(const std::string& anycase) {
+     // copy string
+     std::string str(anycase);
+     // transform the copy
+-    std::transform(str.begin(), str.end(), str.begin(), tolower);
++    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+     return str;
+ }
+ 
+diff --git a/base/file.cpp b/base/file.cpp
+index d4e5894..a858852 100644
+--- a/base/file.cpp
++++ b/base/file.cpp
+@@ -250,9 +250,9 @@ std::string GetExecutablePath() {
+   }
+   return path;
+ #elif defined(_WIN32)
+-  char path[PATH_MAX + 1];
+-  DWORD result = GetModuleFileName(NULL, path, sizeof(path) - 1);
+-  if (result == 0 || result == sizeof(path) - 1) return "";
++  CHAR path[PATH_MAX + 1];
++  DWORD result = GetModuleFileNameA(NULL, path, arraysize(path) - 1);
++  if (result == 0 || result == arraysize(path) - 1) return "";
+   path[PATH_MAX - 1] = 0;
+   return path;
+ #else
+diff --git a/fastboot/fastboot.cpp b/fastboot/fastboot.cpp
+index 2927b16..0e14b5a 100644
+--- a/fastboot/fastboot.cpp
++++ b/fastboot/fastboot.cpp
+@@ -158,6 +158,11 @@ std::string find_item(const char* item, const char* product) {
+     return find_item_given_name(fn, product);
+ }
+ 
++#if defined( __x86_64__)
++#define stat stat64
++#define fstat fstat64
++#endif
++
+ static int64_t get_file_size(int fd) {
+     struct stat sb;
+     return fstat(fd, &sb) == -1 ? -1 : sb.st_size;
+diff --git a/fastboot/socket.h b/fastboot/socket.h
+index 7eaa0ab..6bc9f26 100644
+--- a/fastboot/socket.h
++++ b/fastboot/socket.h
+@@ -41,7 +41,6 @@
+ 
+ #include <android-base/macros.h>
+ #include <cutils/sockets.h>
+-#include <gtest/gtest_prod.h>
+ 
+ // Socket interface to be implemented for each platform.
+ class Socket {
+@@ -120,8 +119,6 @@ class Socket {
+             socket_send_buffers_function_ = &socket_send_buffers;
+ 
+   private:
+-    FRIEND_TEST(SocketTest, TestTcpSendBuffers);
+-    FRIEND_TEST(SocketTest, TestUdpSendBuffers);
+ 
+     DISALLOW_COPY_AND_ASSIGN(Socket);
+ };
+diff --git a/libcutils/include/cutils/trace.h b/libcutils/include/cutils/trace.h
+index fcbdc9b..5fae30c 100644
+--- a/libcutils/include/cutils/trace.h
++++ b/libcutils/include/cutils/trace.h
+@@ -18,7 +18,13 @@
+ #define _LIBS_CUTILS_TRACE_H
+ 
+ #include <inttypes.h>
++#ifdef __cplusplus
++#include <atomic>
++#define _Atomic(T) atomic<T>
++using namespace std;
++#else
+ #include <stdatomic.h>
++#endif
+ #include <stdbool.h>
+ #include <stdint.h>
+ #include <stdio.h>
