@@ -20,8 +20,9 @@ SRCS+= tcp.c
 SRCS+= udp.c
 SRCS+= util.c
 SRCS+= usb_windows.c
+SRCS+= main.c
 
-SRCS+= ../adb/diagnose_usb.c
+SRCS+= ../diagnose_usb/diagnose_usb.c
 
 VPATH+= ../../../external/zlib/src
 SRCS+= adler32.c
@@ -52,6 +53,7 @@ SRCS+= strings.c
 SRCS+= test_utils.c
 SRCS+= errors_windows.c
 SRCS+= utf8.c
+SRCS+= threads.c
 
 VPATH+= ../libziparchive
 SRCS+= zip_archive.c
@@ -65,8 +67,6 @@ SRCS+= sparse_err.c
 SRCS+= sparse_read.c
 
 VPATH+= ../../extras/ext4_utils/
-SRCS+= make_ext4fs.c
-SRCS+= ext4fixup.c
 SRCS+= ext4_utils.c
 SRCS+= allocate.c
 SRCS+= contents.c
@@ -122,10 +122,11 @@ CPPFLAGS+= -I../base/include
 CPPFLAGS+= -I../libsparse/include
 CPPFLAGS+= -I../../../external/zlib
 CPPFLAGS+= -I../adb
-CPPFLAGS+= -I../mkbootimg
+CPPFLAGS+= -I../mkbootimg/include/bootimg
 CPPFLAGS+= -I../../extras/ext4_utils/include
 CPPFLAGS+= -I../../extras/f2fs_utils
 CPPFLAGS+= -I../libziparchive/include
+CPPFLAGS+= -I../diagnose_usb/include
 
 CXXFLAGS+= -std=gnu++11
 CXXFLAGS+= -mno-ms-bitfields

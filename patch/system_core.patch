@@ -1,7 +1,31 @@
-diff --git a/adb/adb_auth_host.cpp b/adb/adb_auth_host.cpp
-index 365bf77..22e4b76 100644
---- a/adb/adb_auth_host.cpp
-+++ b/adb/adb_auth_host.cpp
+diff --git a/adb/adb.cpp b/adb/adb.cpp
+index f8a54c6..050917e 100644
+--- a/adb/adb.cpp
++++ b/adb/adb.cpp
+@@ -44,7 +44,6 @@
+ #include <android-base/parsenetaddress.h>
+ #include <android-base/stringprintf.h>
+ #include <android-base/strings.h>
+-#include <build/version.h>
+ 
+ #include "adb_auth.h"
+ #include "adb_io.h"
+@@ -65,10 +64,9 @@ std::string adb_version() {
+     // Don't change the format of this --- it's parsed by ddmlib.
+     return android::base::StringPrintf(
+         "Android Debug Bridge version %d.%d.%d\n"
+-        "Version %s\n"
+         "Installed as %s\n",
+         ADB_VERSION_MAJOR, ADB_VERSION_MINOR, ADB_SERVER_VERSION,
+-        android::build::GetBuildNumber().c_str(), android::base::GetExecutablePath().c_str());
++        android::base::GetExecutablePath().c_str());
+ }
+ 
+ void fatal(const char *fmt, ...) {
+diff --git a/adb/client/auth.cpp b/adb/client/auth.cpp
+index 0f4dd33..533dcb3 100644
+--- a/adb/client/auth.cpp
++++ b/adb/client/auth.cpp
 @@ -34,7 +34,6 @@
  #include <android-base/stringprintf.h>
  #include <android-base/strings.h>
@@ -38,20 +62,20 @@ index 365bf77..22e4b76 100644
  static bool write_public_keyfile(RSA* private_key, const std::string& private_key_path) {
      LOG(INFO) << "write_public_keyfile...";
  
-diff --git a/adb/commandline.cpp b/adb/commandline.cpp
-index 4979eef..2734725 100644
---- a/adb/commandline.cpp
-+++ b/adb/commandline.cpp
-@@ -870,7 +870,7 @@ static int adb_sideload_host(const char* filename) {
+diff --git a/adb/client/commandline.cpp b/adb/client/commandline.cpp
+index e07dba7..cc5a939 100644
+--- a/adb/client/commandline.cpp
++++ b/adb/client/commandline.cpp
+@@ -853,7 +853,7 @@ static int adb_sideload_host(const char* filename) {
+     }
  
-     fprintf(stderr, "connecting...\n");
      std::string service = android::base::StringPrintf(
 -        "sideload-host:%d:%d", static_cast<int>(sb.st_size), SIDELOAD_HOST_BLOCK_SIZE);
 +        "sideload-host:%" PRIu32 ":%d", static_cast<uint32_t>(sb.st_size), SIDELOAD_HOST_BLOCK_SIZE);
      std::string error;
      unique_fd device_fd(adb_connect(service, &error));
      if (device_fd < 0) {
-@@ -885,7 +885,7 @@ static int adb_sideload_host(const char* filename) {
+@@ -869,7 +869,7 @@ static int adb_sideload_host(const char* filename) {
  
      char buf[SIDELOAD_HOST_BLOCK_SIZE];
  
@@ -60,7 +84,7 @@ index 4979eef..2734725 100644
      int last_percent = -1;
      while (true) {
          if (!ReadFdExactly(device_fd, buf, 8)) {
-@@ -896,25 +896,25 @@ static int adb_sideload_host(const char* filename) {
+@@ -880,25 +880,25 @@ static int adb_sideload_host(const char* filename) {
  
          if (strcmp("DONEDONE", buf) == 0) {
              printf("\rTotal xfer: %.2fx%*s\n",
@@ -76,7 +100,7 @@ index 4979eef..2734725 100644
 -        if (offset >= static_cast<size_t>(sb.st_size)) {
 +        uint32_t offset = block * SIDELOAD_HOST_BLOCK_SIZE;
 +        if (offset >= static_cast<uint32_t>(sb.st_size)) {
-             fprintf(stderr, "* attempt to read block %d past end\n", block);
+             fprintf(stderr, "adb: failed to read block %d past end\n", block);
              return -1;
          }
  
@@ -89,10 +113,10 @@ index 4979eef..2734725 100644
  
 -        if (adb_lseek(package_fd, offset, SEEK_SET) != static_cast<int>(offset)) {
 +        if (adb_lseek(package_fd, offset, SEEK_SET) != offset) {
-             fprintf(stderr, "* failed to seek to package block: %s\n", strerror(errno));
+             fprintf(stderr, "adb: failed to seek to package block: %s\n", strerror(errno));
              return -1;
          }
-@@ -936,7 +936,7 @@ static int adb_sideload_host(const char* filename) {
+@@ -920,7 +920,7 @@ static int adb_sideload_host(const char* filename) {
          // extra access to things like the zip central directory).
          // This estimate of the completion becomes 100% when we've
          // transferred ~2.13 (=100/47) times the package size.
@@ -102,19 +126,32 @@ index 4979eef..2734725 100644
              printf("\rserving: '%s'  (~%d%%)    ", filename, percent);
              fflush(stdout);
 diff --git a/adb/sysdeps.h b/adb/sysdeps.h
-index f195b4e..f082893 100644
+index 3be99f6..8d20ee4 100644
 --- a/adb/sysdeps.h
 +++ b/adb/sysdeps.h
-@@ -194,7 +194,7 @@ extern int  adb_open(const char*  path, int  options);
- extern int  adb_creat(const char*  path, int  mode);
- extern int  adb_read(int  fd, void* buf, int len);
- extern int  adb_write(int  fd, const void*  buf, int  len);
--extern int  adb_lseek(int  fd, int  pos, int  where);
-+extern int64_t  adb_lseek(int  fd, int64_t  pos, int  where);
- extern int  adb_shutdown(int  fd);
- extern int  adb_close(int  fd);
- extern int  adb_register_socket(SOCKET s);
-@@ -551,9 +551,9 @@ static __inline__  int  adb_write(int  fd, const void*  buf, size_t  len)
+@@ -76,6 +76,12 @@
+ 
+ #include "fdevent.h"
+ 
++#ifndef SHUT_RDWR
++#define SHUT_RD   0x00
++#define SHUT_WR   0x01
++#define SHUT_RDWR 0x02
++#endif
++
+ #define OS_PATH_SEPARATORS "\\/"
+ #define OS_PATH_SEPARATOR '\\'
+ #define OS_PATH_SEPARATOR_STR "\\"
+@@ -110,7 +116,7 @@ extern int adb_open(const char* path, int options);
+ extern int adb_creat(const char* path, int mode);
+ extern int adb_read(int fd, void* buf, int len);
+ extern int adb_write(int fd, const void* buf, int len);
+-extern int adb_lseek(int fd, int pos, int where);
++extern int64_t adb_lseek(int  fd, int64_t  pos, int  where);
+ extern int adb_shutdown(int fd, int direction = SHUT_RDWR);
+ extern int adb_close(int fd);
+ extern int adb_register_socket(SOCKET s);
+@@ -457,9 +463,9 @@ static __inline__  int  adb_write(int  fd, const void*  buf, size_t  len)
  #undef   write
  #define  write  ___xxx_write
  
@@ -126,11 +163,24 @@ index f195b4e..f082893 100644
  }
  #undef   lseek
  #define  lseek   ___xxx_lseek
+diff --git a/adb/sysdeps/uio.h b/adb/sysdeps/uio.h
+index d06ef89..13e9cbc 100644
+--- a/adb/sysdeps/uio.h
++++ b/adb/sysdeps/uio.h
+@@ -22,7 +22,7 @@
+ 
+ // Layout of this struct must match struct WSABUF (verified via static assert in sysdeps_win32.cpp)
+ struct adb_iovec {
+-    size_t iov_len;
++    unsigned long iov_len;
+     void* iov_base;
+ };
+ 
 diff --git a/adb/sysdeps_win32.cpp b/adb/sysdeps_win32.cpp
-index f997e6b..43d7e71 100644
+index bfac342..ec9004b 100644
 --- a/adb/sysdeps_win32.cpp
 +++ b/adb/sysdeps_win32.cpp
-@@ -54,14 +54,14 @@ typedef struct EventHookRec_* EventHook;
+@@ -57,7 +57,7 @@ typedef struct EventHookRec_* EventHook;
  typedef struct FHClassRec_ {
      void (*_fh_init)(FH);
      int (*_fh_close)(FH);
@@ -138,7 +188,8 @@ index f997e6b..43d7e71 100644
 +    int64_t (*_fh_lseek)(FH, int64_t, int);
      int (*_fh_read)(FH, void*, int);
      int (*_fh_write)(FH, const void*, int);
- } FHClassRec;
+     int (*_fh_writev)(FH, const adb_iovec*, int);
+@@ -65,7 +65,7 @@ typedef struct FHClassRec_ {
  
  static void _fh_file_init(FH);
  static int _fh_file_close(FH);
@@ -146,8 +197,8 @@ index f997e6b..43d7e71 100644
 +static int64_t _fh_file_lseek(FH, int64_t, int);
  static int _fh_file_read(FH, void*, int);
  static int _fh_file_write(FH, const void*, int);
- 
-@@ -75,7 +75,7 @@ static const FHClassRec _fh_file_class = {
+ static int _fh_file_writev(FH, const adb_iovec*, int);
+@@ -81,7 +81,7 @@ static const FHClassRec _fh_file_class = {
  
  static void _fh_socket_init(FH);
  static int _fh_socket_close(FH);
@@ -155,25 +206,25 @@ index f997e6b..43d7e71 100644
 +static int64_t _fh_socket_lseek(FH, int64_t, int);
  static int _fh_socket_read(FH, void*, int);
  static int _fh_socket_write(FH, const void*, int);
- 
-@@ -284,9 +284,10 @@ static int _fh_file_write( FH  f,  const void*  buf, int   len ) {
-     return  (int)wrote_bytes;
+ static int _fh_socket_writev(FH, const adb_iovec*, int);
+@@ -318,9 +318,10 @@ static int _fh_file_writev(FH f, const adb_iovec* iov, int iovcnt) {
+     return wrote_bytes;
  }
  
--static int _fh_file_lseek( FH  f, int  pos, int  origin ) {
+-static int _fh_file_lseek(FH f, int pos, int origin) {
 +static int64_t _fh_file_lseek( FH  f, int64_t  pos, int  origin ) {
-     DWORD  method;
--    DWORD  result;
+     DWORD method;
+-    DWORD result;
 +    LARGE_INTEGER result;
 +    LARGE_INTEGER pos_input;
  
-     switch (origin)
-     {
-@@ -298,14 +299,15 @@ static int _fh_file_lseek( FH  f, int  pos, int  origin ) {
+     switch (origin) {
+         case SEEK_SET:
+@@ -337,14 +338,15 @@ static int _fh_file_lseek(FH f, int pos, int origin) {
              return -1;
      }
  
--    result = SetFilePointer( f->fh_handle, pos, NULL, method );
+-    result = SetFilePointer(f->fh_handle, pos, NULL, method);
 -    if (result == INVALID_SET_FILE_POINTER) {
 +    pos_input.QuadPart = pos;
 +    if (!SetFilePointerEx( f->fh_handle, pos_input, &result, method )) {
@@ -187,26 +238,26 @@ index f997e6b..43d7e71 100644
 +    return result.QuadPart;
  }
  
- 
-@@ -449,7 +451,7 @@ int  adb_write(int  fd, const void*  buf, int  len)
+ /**************************************************************************/
+@@ -491,7 +493,7 @@ ssize_t adb_writev(int fd, const adb_iovec* iov, int iovcnt) {
+     return f->clazz->_fh_writev(f, iov, iovcnt);
  }
  
+-int adb_lseek(int fd, int pos, int where) {
++int64_t  adb_lseek(int  fd, int64_t  pos, int  where) {
+     FH f = _fh_from_int(fd, __func__);
  
--int  adb_lseek(int  fd, int  pos, int  where)
-+int64_t  adb_lseek(int  fd, int64_t  pos, int  where)
- {
-     FH     f = _fh_from_int(fd, __func__);
- 
-@@ -597,7 +599,7 @@ static int _fh_socket_close( FH  f ) {
+     if (!f) {
+@@ -644,7 +646,7 @@ static int _fh_socket_close(FH f) {
      return 0;
  }
  
--static int _fh_socket_lseek( FH  f, int pos, int origin ) {
+-static int _fh_socket_lseek(FH f, int pos, int origin) {
 +static int64_t _fh_socket_lseek( FH  f, int64_t pos, int origin ) {
      errno = EPIPE;
      return -1;
  }
-@@ -2578,7 +2580,7 @@ static std::string ToLower(const std::string& anycase) {
+@@ -2614,7 +2616,7 @@ static std::string ToLower(const std::string& anycase) {
      // copy string
      std::string str(anycase);
      // transform the copy
@@ -216,10 +267,10 @@ index f997e6b..43d7e71 100644
  }
  
 diff --git a/base/file.cpp b/base/file.cpp
-index d4e5894..a858852 100644
+index 2f697a1..7b7c425 100644
 --- a/base/file.cpp
 +++ b/base/file.cpp
-@@ -250,9 +250,9 @@ std::string GetExecutablePath() {
+@@ -277,9 +277,9 @@ std::string GetExecutablePath() {
    }
    return path;
  #elif defined(_WIN32)
@@ -233,11 +284,11 @@ index d4e5894..a858852 100644
    return path;
  #else
 diff --git a/fastboot/fastboot.cpp b/fastboot/fastboot.cpp
-index 2927b16..0e14b5a 100644
+index 5aa87d9..61a2f0b 100644
 --- a/fastboot/fastboot.cpp
 +++ b/fastboot/fastboot.cpp
-@@ -158,6 +158,11 @@ std::string find_item(const char* item, const char* product) {
-     return find_item_given_name(fn, product);
+@@ -152,6 +152,11 @@ static std::string find_item(const std::string& item) {
+     return "";
  }
  
 +#if defined( __x86_64__)
@@ -249,10 +300,10 @@ index 2927b16..0e14b5a 100644
      struct stat sb;
      return fstat(fd, &sb) == -1 ? -1 : sb.st_size;
 diff --git a/fastboot/socket.h b/fastboot/socket.h
-index 7eaa0ab..6bc9f26 100644
+index e791f2c..671fc11 100644
 --- a/fastboot/socket.h
 +++ b/fastboot/socket.h
-@@ -41,7 +41,6 @@
+@@ -40,7 +40,6 @@
  
  #include <android-base/macros.h>
  #include <cutils/sockets.h>
@@ -260,7 +311,7 @@ index 7eaa0ab..6bc9f26 100644
  
  // Socket interface to be implemented for each platform.
  class Socket {
-@@ -120,8 +119,6 @@ class Socket {
+@@ -119,8 +118,6 @@ class Socket {
              socket_send_buffers_function_ = &socket_send_buffers;
  
    private:
@@ -270,7 +321,7 @@ index 7eaa0ab..6bc9f26 100644
      DISALLOW_COPY_AND_ASSIGN(Socket);
  };
 diff --git a/libcutils/include/cutils/trace.h b/libcutils/include/cutils/trace.h
-index fcbdc9b..5fae30c 100644
+index 58b9f09..365169e 100644
 --- a/libcutils/include/cutils/trace.h
 +++ b/libcutils/include/cutils/trace.h
 @@ -18,7 +18,13 @@

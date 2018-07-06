@@ -14,12 +14,15 @@ SRCS+= adb.c
 SRCS+= adb_io.c
 SRCS+= adb_listeners.c
 SRCS+= adb_trace.c
+SRCS+= adb_unique_fd.c
 SRCS+= adb_utils.c
 SRCS+= fdevent.c
+SRCS+= services.c
 SRCS+= sockets.c
 SRCS+= socket_spec.c
 SRCS+= sysdeps/errno.c
 SRCS+= transport.c
+SRCS+= transport_fd.c
 SRCS+= transport_local.c
 SRCS+= transport_usb.c
 
@@ -28,19 +31,20 @@ SRCS+= sysdeps/win32/errno.c
 SRCS+= sysdeps/win32/stat.c
 SRCS+= client/usb_windows.c
 
-SRCS+= adb_auth_host.c
-SRCS+= transport_mdns.c
+SRCS+= client/auth.c
+SRCS+= client/usb_libusb.c
+SRCS+= client/usb_dispatch.c
+SRCS+= client/transport_mdns.c
 
-SRCS+= diagnose_usb.c
+SRCS+= ../diagnose_usb/diagnose_usb.c
 
-SRCS+= adb_client.c
-SRCS+= bugreport.c
+SRCS+= client/adb_client.c
+SRCS+= client/bugreport.c
+SRCS+= client/commandline.c
+SRCS+= client/file_sync_client.c
 SRCS+= client/main.c
-SRCS+= console.c
-SRCS+= commandline.c
-SRCS+= file_sync_client.c
-SRCS+= line_printer.c
-SRCS+= services.c
+SRCS+= client/console.c
+SRCS+= client/line_printer.c
 SRCS+= shell_service_protocol.c
 
 VPATH+= ../base
@@ -52,6 +56,7 @@ SRCS+= utf8.c
 SRCS+= errors_windows.c
 SRCS+= parsenetaddress.c
 SRCS+= quick_exit.c
+SRCS+= threads.c
 
 VPATH+= ../libcrypto_utils
 SRCS+= android_pubkey.c
@@ -64,6 +69,20 @@ SRCS+= dnssd_ipc.c
 VPATH+= ../../../external/mdnsresponder/mDNSWindows/DLL
 SRCS+= dllmain.c
 
+VPATH+= ../../../external/libusb/libusb
+SRCS+= core.c
+SRCS+= descriptor.c
+SRCS+= hotplug.c
+SRCS+= io.c
+SRCS+= sync.c
+SRCS+= strerror.c
+
+VPATH+= ../../../external/libusb/libusb/os
+SRCS+= poll_windows.c
+SRCS+= threads_windows.c
+SRCS+= windows_nt_common.c
+SRCS+= windows_winusb.c
+
 CXXFLAGS+= -std=gnu++11
 
 CPPFLAGS+= -D_mkdir=mkdir
@@ -73,6 +92,7 @@ CPPFLAGS+= -DHAVE_FORKEXEC=1
 #CPPFLAGS+= -DHAVE_TERMIO_H
 CPPFLAGS+= -DHAVE_SYS_SOCKET_H
 CPPFLAGS+= -D_GNU_SOURCE
+CPPFLAGS+= -D_POSIX_SOURCE
 CPPFLAGS+= -D_XOPEN_SOURCE
 CPPFLAGS+= -D_WIN32
 CPPFLAGS+= -D_WIN32_WINNT=0x0600
@@ -88,8 +108,13 @@ CPPFLAGS+= -I.
 CPPFLAGS+= -I../include
 CPPFLAGS+= -I../../../../openssl-1.0.2n/include
 CPPFLAGS+= -I../base/include 
-CPPFLAGS+= -I../libcrypto_utils/include/
+CPPFLAGS+= -I../libcrypto_utils/include
+CPPFLAGS+= -I../diagnose_usb/include
 CPPFLAGS+= -I../../../external/mdnsresponder/mDNSShared/
+CPPFLAGS+= -I../../../external/libusb/include
+CPPFLAGS+= -I../../../external/libusb/libusb
+CPPFLAGS+= -I../../../external/libusb/libusb/os
+CPPFLAGS+= -I../../../external/libusb/windows
 CPPFLAGS+= -D__BEGIN_DECLS=/**/
 CPPFLAGS+= -D__END_DECLS=/**/
 CPPFLAGS+= -DUNICODE=1 -D_UNICODE=1
@@ -116,7 +141,8 @@ CFLAGS+= -DUSE_MINGW
 
 LDFLAGS+= -L../../../../openssl-1.0.2n -static-libstdc++ -static-libgcc
 LDFLAGS+= -municode
-LIBS= -lcrypto -lpthread -lws2_32 -lgdi32
+LIBS= -lpthread -lcrypto
+LIBS+= -lws2_32 -lgdi32 -luserenv
 LIBS+= AdbWinUsbApi.dll AdbWinApi.dll
 LIBS+= -static -lstdc++
 #LIBS+= -lrt 

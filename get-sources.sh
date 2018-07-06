@@ -9,7 +9,7 @@ tar -xvzf openssl-1.0.2n.tar.gz
 # -------------------------
 
 # Branch to checkout from Android source code repo
-branch=android-8.1.0_r2
+branch=android-p-preview-4
 
 # DOWNLOAD necessary files
 # -------------------------
@@ -26,6 +26,7 @@ cd ..
 mkdir external
 cd external
 git clone -b $branch https://android.googlesource.com/platform/external/zlib
-git clone -b $branch https://android.googlesource.com/platform/external/mdnsresponder/
+git clone -b $branch https://android.googlesource.com/platform/external/mdnsresponder
+git clone -b $branch https://android.googlesource.com/platform/external/libusb
 patch -p1 -d mdnsresponder < ../../patch/external_mdnsresponder.patch
 cd ..
